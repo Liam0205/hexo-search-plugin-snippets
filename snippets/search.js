@@ -1,7 +1,6 @@
 // A local search script with the help of [hexo-generator-search](https://github.com/PaicHyperionDev/hexo-generator-search)
-// Copyright (C) 2015 
-// Joseph Pan <http://github.com/wzpan>
-// Shuhao Mao <http://github.com/maoshuhao>
+// Copyright (C) 2017 
+// Liam Huang <http://github.com/Liam0205>
 // This library is free software; you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
 // published by the Free Software Foundation; either version 2.1 of the
@@ -20,11 +19,15 @@
 
 var searchFunc = function (path, search_id, content_id) {
   'use strict';
-  var BTN = "<i id='local-search-close'>x</i>";
+  var BTN = "<i id='local-search-close'>×</i>";
+  var $input = document.getElementById(search_id);
+  var $resultContent = document.getElementById(content_id);
+  $resultContent.innerHTML = BTN + "<ul><span class='local-search-empty'>首次搜索，正在载入索引文件，请稍后……<span></ul>";
   $.ajax({
     url: path,
     dataType: "xml",
     success: function (xmlResponse) {
+
       // get the contents from search data
       var datas = $("entry", xmlResponse).map(function () {
         return {
@@ -33,9 +36,7 @@ var searchFunc = function (path, search_id, content_id) {
           url: $("url", this).text()
         };
       }).get();
-
-      var $input = document.getElementById(search_id);
-      var $resultContent = document.getElementById(content_id);
+      $resultContent.innerHTML = "";
 
       $input.addEventListener('input', function () {
         var str = '<ul class=\"search-result-list\">';
@@ -51,8 +52,10 @@ var searchFunc = function (path, search_id, content_id) {
           if (!data.title || data.title.trim() === '') {
             data.title = "Untitled";
           }
-          var data_title = data.title.trim().toLowerCase();
-          var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+          var orig_data_title = data.title.trim();
+          var data_title = orig_data_title.toLowerCase();
+          var orig_data_content = data.content.trim().replace(/<[^>]+>/g, "");
+          var data_content = orig_data_content.toLowerCase();
           var data_url = data.url;
           var index_title = -1;
           var index_content = -1;
@@ -80,8 +83,8 @@ var searchFunc = function (path, search_id, content_id) {
           }
           // show search results
           if (isMatch) {
-            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
-            var content = data.content.trim().replace(/<[^>]+>/g, "");
+            str += "<li><a href='" + data_url + "' class='search-result-title' target='_blank'>" + orig_data_title + "</a>";
+            var content = orig_data_content;
             if (first_occur >= 0) {
               // cut out 100 characters
               var start = first_occur - 20;
@@ -114,7 +117,7 @@ var searchFunc = function (path, search_id, content_id) {
         });
         str += "</ul>";
         if (str.indexOf('<li>') === -1) {
-          return $resultContent.innerHTML = BTN + "<ul><span class='local-search-empty'>没有找到内容，更换下搜索词试试吧~<span></ul>";
+          return $resultContent.innerHTML = BTN + "<ul><span class='local-search-empty'>没有找到内容，请尝试更换检索词。<span></ul>";
         }
         $resultContent.innerHTML = BTN + str;
       });
@@ -124,4 +127,9 @@ var searchFunc = function (path, search_id, content_id) {
     $('#local-search-input').val('');
     $('#local-search-result').html('');
   });
+}
+
+var getSearchFile = function(){
+    var path = "/search.xml";
+    searchFunc(path, 'local-search-input', 'local-search-result');
 }
