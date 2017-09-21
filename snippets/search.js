@@ -18,17 +18,18 @@
 // 
 
 var searchFunc = function (path, search_id, content_id) {
+  // 0x00. environment initialization
   'use strict';
   var BTN = "<i id='local-search-close'>×</i>";
   var $input = document.getElementById(search_id);
   var $resultContent = document.getElementById(content_id);
   $resultContent.innerHTML = BTN + "<ul><span class='local-search-empty'>首次搜索，正在载入索引文件，请稍后……<span></ul>";
   $.ajax({
+    // 0x01. load xml file
     url: path,
     dataType: "xml",
     success: function (xmlResponse) {
-
-      // get the contents from search data
+      // 0x02. parse xml file
       var datas = $("entry", xmlResponse).map(function () {
         return {
           title: $("title", this).text(),
@@ -39,13 +40,14 @@ var searchFunc = function (path, search_id, content_id) {
       $resultContent.innerHTML = "";
 
       $input.addEventListener('input', function () {
+        // 0x03. parse query to keywords list
         var str = '<ul class=\"search-result-list\">';
         var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
         $resultContent.innerHTML = "";
         if (this.value.trim().length <= 0) {
           return;
         }
-        // perform local searching
+        // 0x04. perform local searching
         datas.forEach(function (data) {
           var isMatch = true;
           var content_index = [];
@@ -81,7 +83,7 @@ var searchFunc = function (path, search_id, content_id) {
           } else {
             isMatch = false;
           }
-          // show search results
+          // 0x05. show search results
           if (isMatch) {
             str += "<li><a href='" + data_url + "' class='search-result-title' target='_blank'>" + orig_data_title + "</a>";
             var content = orig_data_content;
